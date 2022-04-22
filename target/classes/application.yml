@@ -16,6 +16,10 @@ spring:
     #使用本地的windows不用密码也可以
     #password:
     database: 1
+  cache:
+    redis:
+      time-to-live: 1800000 #设置缓存数据的过期时间,这里的单位是毫秒,可以设置也可以不设置
+
 
 mybatis-plus:
   configuration:
