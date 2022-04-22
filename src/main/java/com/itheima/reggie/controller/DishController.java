@@ -13,9 +13,12 @@ import com.itheima.reggie.service.DishService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -36,6 +39,9 @@ public class DishController {
     @Autowired
     private CategoryService categoryService;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
 
     /**
      * 新增菜品
@@ -45,6 +51,10 @@ public class DishController {
     @PostMapping
     public R<String> save(@RequestBody DishDto dishDto){ //前端提交的是json数据的话，我们在后端就要使用这个注解来接收参数，否则接收到的数据全是null
         dishService.saveWithFlavor(dishDto);
+        //清理某个分类下面的菜品缓存
+        String key = "dish_" + dishDto.getCategoryId() + "_1";
+        redisTemplate.delete(key);
+
         return R.success("新增菜品成功");
     }
 
@@ -125,6 +135,14 @@ public class DishController {
 
         dishService.updateWithFlavor(dishDto);
 
+        //清理所有菜品的缓存数据
+        //Set keys = redisTemplate.keys("dish_*");
+        //redisTemplate.delete(keys);
+
+        //清理某个分类下面的菜品缓存
+        String key = "dish_" + dishDto.getCategoryId() + "_1";
+        redisTemplate.delete(key);
+
         return R.success("新增菜品成功");
     }
 
@@ -154,6 +172,20 @@ public class DishController {
     //方法改造
     @GetMapping("/list")
     public R<List<DishDto>> list(Dish dish){ //会自动映射的
+
+        List<DishDto> dishDtoList = null;
+        //根据前端传传过来的参数动态的构造key
+        String key = "dish_"+dish.getCategoryId()+"_"+dish.getStatus();
+
+        //先从redis中获取缓存数据
+        dishDtoList = (List<DishDto>) redisTemplate.opsForValue().get(key);
+        if (dishDtoList != null) {
+            //如果存在，直接返回，无需查询数据库
+            return R.success(dishDtoList);
+        }
+
+        //如果不存在，直接查询数据库,并且将查询到的菜品数据缓存到redis中
+
         //这里可以传categoryId,但是为了代码通用性更强,这里直接使用dish类来接受（因为dish里面是有categoryId的）,以后传dish的其他属性这里也可以使用
         //构造查询条件
         LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
@@ -166,7 +198,7 @@ public class DishController {
         List<Dish> list = dishService.list(queryWrapper);
 
         //进行集合的泛型转化
-        List<DishDto> dishDtoList = list.stream().map((item) ->{
+            dishDtoList = list.stream().map((item) ->{
             DishDto dishDto = new DishDto();
             //为一个新的对象赋值，一定要考虑你为它赋过几个值，否则你自己都不知道就返回了null的数据
             //为dishDto对象的基本属性拷贝
@@ -190,6 +222,9 @@ public class DishController {
 
             return dishDto;
         }).collect(Collectors.toList());
+
+        //将查询到的菜品数据缓存到redis中   设置过期时间60分钟
+        redisTemplate.opsForValue().set(key,dishDtoList,60, TimeUnit.MINUTES);
 
         return R.success(dishDtoList);
     }
