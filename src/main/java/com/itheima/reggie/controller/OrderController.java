@@ -6,6 +6,7 @@ import com.itheima.reggie.common.R;
 import com.itheima.reggie.entity.Orders;
 import com.itheima.reggie.entity.Setmeal;
 import com.itheima.reggie.service.OrderService;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,7 +34,7 @@ public class OrderController {
 
 
     /**
-     * 用户订单分页查询
+     * 用户端展示自己的订单分页查询
      * @param page
      * @param pageSize
      * @return
@@ -52,5 +53,34 @@ public class OrderController {
 
         return R.success(pageInfo);
     }
+
+
+    /**
+     * 后台查询订单明细
+     * @param page
+     * @param pageSize
+     * @param number
+     * @param beginTime
+     * @param endTime
+     * @return
+     */
+    @GetMapping("/page")
+    public R<Page> page(int page, int pageSize, String number,String beginTime,String endTime){
+        //分页构造器对象
+        Page<Orders> pageInfo = new Page<>(page,pageSize);
+        //构造条件查询对象
+        LambdaQueryWrapper<Orders> queryWrapper = new LambdaQueryWrapper<>();
+
+        //添加查询条件
+        queryWrapper.like(number!=null,Orders::getNumber,number)
+                .gt(StringUtils.isNotEmpty(beginTime),Orders::getOrderTime,beginTime)
+                .lt(StringUtils.isNotEmpty(endTime),Orders::getOrderTime,endTime);
+
+        orderService.page(pageInfo,queryWrapper);
+        return R.success(pageInfo);
+    }
+
+
+
 
 }
