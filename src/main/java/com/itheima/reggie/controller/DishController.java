@@ -148,6 +148,17 @@ public class DishController {
 
 
     /**
+     * 套餐批量删除和单个删除
+     * @return
+     */
+    @DeleteMapping
+    public R<String> delete(@RequestParam("ids") List<Long> ids){
+        dishService.deleteByIds(ids);
+        return R.success("菜品删除成功");
+    }
+
+
+    /**
      * 根据条件查询对应的菜品数据
      * @param dish
      * @return
@@ -227,6 +238,28 @@ public class DishController {
         redisTemplate.opsForValue().set(key,dishDtoList,60, TimeUnit.MINUTES);
 
         return R.success(dishDtoList);
+    }
+
+    /**
+     * 对菜品批量或者是单个 进行停售或者是起售
+     * @return
+     */
+    @PostMapping("/status/{status}")
+    //这个参数这里一定记得加注解才能获取到参数，否则这里非常容易出问题
+    public R<String> status(@PathVariable("status") Integer status,@RequestParam List<Long> ids){
+        //log.info("status:{}",status);
+        //log.info("ids:{}",ids);
+        LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper();
+        queryWrapper.in(ids !=null,Dish::getId,ids);
+        List<Dish> list = dishService.list(queryWrapper);
+
+        for (Dish dish : list) {
+            if (dish != null){
+                dish.setStatus(status);
+                dishService.updateById(dish);
+            }
+        }
+        return R.success("售卖状态修改成功");
     }
 
 
