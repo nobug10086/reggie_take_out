@@ -13,6 +13,7 @@ import com.itheima.reggie.dto.SetmealDto;
 import com.itheima.reggie.entity.Category;
 import com.itheima.reggie.entity.Dish;
 import com.itheima.reggie.entity.Setmeal;
+import com.itheima.reggie.entity.SetmealDish;
 import com.itheima.reggie.service.CategoryService;
 import com.itheima.reggie.service.SetmealDishService;
 import com.itheima.reggie.service.SetmealService;
@@ -155,6 +156,28 @@ public class SetmealController {
     public R<String> status(@PathVariable("status") Integer status,@RequestParam List<Long> ids){
         setmealService.updateSetmealStatusById(status,ids);
         return R.success("售卖状态修改成功");
+    }
+
+
+    /**
+     * 回显套餐数据：根据套餐id查询套餐
+     * @return
+     */
+    @GetMapping("/{id}")
+    public R<SetmealDto> getData(@PathVariable Long id){
+        SetmealDto setmealDto = setmealService.getDate(id);
+
+        return R.success(setmealDto);
+    }
+
+
+
+    @PutMapping
+    public R<String> edit(@RequestBody SetmealDto setmealDto){
+
+        setmealService.updateById(setmealDto);
+
+        return R.success("套餐修改成功");
     }
 
 

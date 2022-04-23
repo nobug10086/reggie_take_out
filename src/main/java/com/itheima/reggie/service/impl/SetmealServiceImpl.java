@@ -3,14 +3,19 @@ package com.itheima.reggie.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.itheima.reggie.common.CustomException;
+import com.itheima.reggie.common.R;
 import com.itheima.reggie.dto.SetmealDto;
+import com.itheima.reggie.entity.Category;
 import com.itheima.reggie.entity.Setmeal;
 import com.itheima.reggie.entity.SetmealDish;
 import com.itheima.reggie.mapper.SetmealMapper;
+import com.itheima.reggie.service.CategoryService;
 import com.itheima.reggie.service.SetmealDishService;
 import com.itheima.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,12 +28,16 @@ import java.util.stream.Collectors;
  * @author LJM
  * @create 2022/4/16
  */
+@Lazy
 @Service
 @Slf4j
 public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> implements SetmealService {
 
     @Autowired
     SetmealDishService setmealDishService;
+
+    //@Autowired
+    //CategoryService categoryService;
 
     /**
      * 新增套餐，同时需要保存套餐和菜品的关联关系
@@ -96,6 +105,29 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
             }
         }
     }
+
+
+    /**
+     * 回显套餐数据：根据套餐id查询套餐
+     * @return
+     */
+    @Override
+    public SetmealDto getDate(Long id) {
+        Setmeal setmeal = this.getById(id);
+        SetmealDto setmealDto = new SetmealDto();
+        LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper();
+        queryWrapper.eq(id!=null,SetmealDish::getSetmealId,id);
+
+        if (setmeal != null){
+            BeanUtils.copyProperties(setmeal,setmealDto);
+            List<SetmealDish> list = setmealDishService.list(queryWrapper);
+            setmealDto.setSetmealDishes(list);
+            return setmealDto;
+        }
+        return null;
+    }
+
+
 
 
 }
