@@ -118,21 +118,39 @@ public class ShoppingCartController {
             queryWrapper.eq(ShoppingCart::getDishId,dishId);
             ShoppingCart cart1 = shoppingCartService.getOne(queryWrapper);
             cart1.setNumber(cart1.getNumber()-1);
-            //对数据进行更新操作
-            shoppingCartService.updateById(cart1);
+            Integer LatestNumber = cart1.getNumber();
+            if (LatestNumber > 0){
+                //对数据进行更新操作
+                shoppingCartService.updateById(cart1);
+            }else if(LatestNumber == 0){
+                //如果购物车的菜品数量减为0，那么就把菜品从购物车删除
+                shoppingCartService.removeById(cart1.getId());
+            }else if (LatestNumber < 0){
+                return R.error("操作异常");
+            }
+
             return R.success(cart1);
         }
+
         Long setmealId = shoppingCart.getSetmealId();
         if (setmealId != null){
             //代表是套餐数量减少
             queryWrapper.eq(ShoppingCart::getSetmealId,setmealId);
             ShoppingCart cart2 = shoppingCartService.getOne(queryWrapper);
             cart2.setNumber(cart2.getNumber()-1);
-            //对数据进行更新操作
-            shoppingCartService.updateById(cart2);
+            Integer LatestNumber = cart2.getNumber();
+            if (LatestNumber > 0){
+                //对数据进行更新操作
+                shoppingCartService.updateById(cart2);
+            }else if(LatestNumber == 0){
+                //如果购物车的套餐数量减为0，那么就把套餐从购物车删除
+                shoppingCartService.removeById(cart2.getId());
+            }else if (LatestNumber < 0){
+                return R.error("操作异常");
+            }
             return R.success(cart2);
         }
-
+            //如果两个大if判断都进不去
             return R.error("操作异常");
     }
 

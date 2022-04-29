@@ -71,7 +71,7 @@ public class OrderController {
         //构造条件查询对象
         LambdaQueryWrapper<Orders> queryWrapper = new LambdaQueryWrapper<>();
 
-        //添加查询条件
+        //添加动态查询条件
         queryWrapper.like(number!=null,Orders::getNumber,number)
                 .gt(StringUtils.isNotEmpty(beginTime),Orders::getOrderTime,beginTime)
                 .lt(StringUtils.isNotEmpty(endTime),Orders::getOrderTime,endTime);
