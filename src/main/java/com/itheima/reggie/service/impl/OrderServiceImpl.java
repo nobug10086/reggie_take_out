@@ -73,7 +73,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
             //每对item进行一次遍历就产生一个新的orderDetail对象,然后对orderDetail进行设置,然后返回被收集,被封装成一个集合
             OrderDetail orderDetail = new OrderDetail();
             orderDetail.setOrderId(orderId);
-            orderDetail.setNumber(item.getNumber());
+            orderDetail.setNumber(item.getNumber());//获取和设置商品数量
             orderDetail.setDishFlavor(item.getDishFlavor());
             orderDetail.setDishId(item.getDishId());
             orderDetail.setSetmealId(item.getSetmealId());
@@ -86,6 +86,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
 
         }).collect(Collectors.toList());
 
+        //orders.setOrderDetails(orderDetails);
+
         //向订单插入数据,一条数据  因为前端传过来的数据太少了,所以我们需要对相关的属性进行填值
 
         orders.setOrderTime(LocalDateTime.now());
@@ -95,6 +97,15 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
         orders.setAmount(new BigDecimal(amount.get()));//总金额
         orders.setUserId(userId);
         orders.setNumber(String.valueOf(orderId));
+
+        //从购物车中获取商品数量  然后求和  这个功能前端写了 不用我们后端来写了
+//        int sum = 0;
+//        for (ShoppingCart shoppingCart : shoppingCarts) {
+//            Integer number = shoppingCart.getNumber();
+//            sum = sum + number;
+//        }
+//        orders.setSumNum(sum);//商品数量
+
         orders.setUserName(user.getName());
         orders.setConsignee(addressBook.getConsignee());
         orders.setPhone(addressBook.getPhone());

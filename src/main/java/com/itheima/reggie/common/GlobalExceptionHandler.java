@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
         if (exception.getMessage().contains("Duplicate entry")){
             //获取已经存在的用户名，这里是从报错的异常信息中获取的
             String[] split = exception.getMessage().split(" ");
-            String msg = split[2] + "这个用户名已经存在";
+            String msg = split[2] + "这个菜品分类名已经存在";
             return R.error(msg);
         }
         return R.error("未知错误");

@@ -1,9 +1,11 @@
 package com.itheima.reggie.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 订单
@@ -58,4 +60,6 @@ public class Orders implements Serializable {
 
     //收货人
     private String consignee;
+
+
 }
