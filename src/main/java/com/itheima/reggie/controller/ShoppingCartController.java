@@ -91,14 +91,8 @@ public class ShoppingCartController {
      */
     @DeleteMapping("/clean")
     public R<String> clean(){
-
-        //sql:delete from shopping_cart where userId =？
-        LambdaQueryWrapper<ShoppingCart> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ShoppingCart::getUserId,BaseContext.getCurrentId());
-        shoppingCartService.remove(queryWrapper);
-
+        shoppingCartService.clean();
         return R.success("清空购物车成功");
-
     }
 
     /**

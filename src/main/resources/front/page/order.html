@@ -134,6 +134,7 @@
                     const res = await orderAgainApi({id:order.id})
                     if(res.code === 1){
                         window.requestAnimationFrame(()=>{
+                            //跳转到商家首页---就是有购物车的页面
                             window.location.href= '/front/index.html'
                         })
                     }else{

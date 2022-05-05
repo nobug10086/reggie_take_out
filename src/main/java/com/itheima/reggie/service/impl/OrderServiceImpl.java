@@ -122,8 +122,34 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
         //清空购物车数据  queryWrapper封装了userId我们直接使用这个条件来进行删除就行
         shoppingCartService.remove(queryWrapper);
 
+    }
 
+    @Override
+    public List<ShoppingCart> againAdd(List<OrderDetail> orderDetailList) {
+        //获取用户id
+        Long userId = BaseContext.getCurrentId();
+        List<ShoppingCart> shoppingCartList = orderDetailList.stream().map((item) -> {
+            //把从order表中和order_details表中获取到的数据赋值给这个购物车对象
+            ShoppingCart shoppingCart = new ShoppingCart();
+            shoppingCart.setUserId(userId);
+            shoppingCart.setImage(item.getImage());
+            Long dishId = item.getDishId();
+            Long setmealId = item.getSetmealId();
+            if (dishId != null) {
+                //如果是菜品那就添加菜品的查询条件
+                shoppingCart.setDishId(dishId);
+            } else {
+                //添加到购物车的是套餐
+                shoppingCart.setSetmealId(setmealId);
+            }
+            shoppingCart.setName(item.getName());
+            shoppingCart.setDishFlavor(item.getDishFlavor());
+            shoppingCart.setNumber(item.getNumber());
+            shoppingCart.setAmount(item.getAmount());
+            shoppingCart.setCreateTime(LocalDateTime.now());
+            return shoppingCart;
+        }).collect(Collectors.toList());
 
-
+        return shoppingCartList;
     }
 }
