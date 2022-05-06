@@ -76,7 +76,6 @@ public class LongCheckFilter implements Filter {
             Long userId = (Long) request.getSession().getAttribute("user");
             BaseContext.setCurrentId(userId);
 
-
             filterChain.doFilter(request,response);
             return;
         }

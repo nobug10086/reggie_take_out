@@ -3,6 +3,7 @@ package com.itheima.reggie.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.itheima.reggie.common.BaseContext;
+import com.itheima.reggie.common.CustomException;
 import com.itheima.reggie.common.R;
 import com.itheima.reggie.dto.OrderDto;
 import com.itheima.reggie.entity.OrderDetail;
@@ -12,6 +13,7 @@ import com.itheima.reggie.entity.ShoppingCart;
 import com.itheima.reggie.service.OrderDetailService;
 import com.itheima.reggie.service.OrderService;
 import com.itheima.reggie.service.ShoppingCartService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/order")
+@Slf4j
 public class OrderController {
 
     @Autowired
@@ -53,11 +56,24 @@ public class OrderController {
     }
 
 
+    //抽离的一个方法，通过订单id查询订单明细，得到一个订单明细的集合
+    public List<OrderDetail> getOrderDetailListByOrderId(Long orderId){
+        LambdaQueryWrapper<OrderDetail> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(OrderDetail::getOrderId, orderId);
+        List<OrderDetail> orderDetailList = orderDetailService.list(queryWrapper);
+        return orderDetailList;
+    }
+
     /**
      * 用户端展示自己的订单分页查询
      * @param page
      * @param pageSize
      * @return
+     * 遇到的坑：原来分页对象中的records集合存储的对象是分页泛型中的对象，里面有分页泛型对象的数据
+     * 开始的时候我以为前端只传过来了分页数据，其他所有的数据都要从本地线程存储的用户id开始查询，
+     * 结果就出现了一个用户id查询到 n个订单对象，然后又使用 n个订单对象又去查询 m 个订单明细对象，
+     * 结果就出现了评论区老哥出现的bug(嵌套显示数据....)
+     * 正确方法:直接从分页对象中获取订单id就行，问题大大简化了......
      */
     @GetMapping("/userPage")
     public R<Page> page(int page, int pageSize){
@@ -71,35 +87,16 @@ public class OrderController {
         queryWrapper.orderByDesc(Orders::getOrderTime);
         orderService.page(pageInfo,queryWrapper);
 
-        //对象的拷贝  注意这里要把分页数据的全集合records给忽略掉  把pageInfo中的数据复制给pageDto
-        BeanUtils.copyProperties(pageInfo,pageDto,"records");
-
-        //前端传给我们的数据太少了，所以都需要自己从用户id来查询
-        Long userId = BaseContext.getCurrentId();
-        LambdaQueryWrapper<Orders> queryWrapper2 = new LambdaQueryWrapper<>();
-        //封装查询Orders表的条件
-        queryWrapper2.eq(Orders::getUserId, userId);
-        //通过用户id查询订单集合
-        List<Orders> list = orderService.list(queryWrapper2);
-
-        List<Long> ordersIdList = new ArrayList<>(); //创建一个集合用来存放orders 的Id,为后面查询OrderDetail做准备
-        //通过循环拿到所有的ordersId 存在集合中
-        for (Orders orders : list) {
-            Long ordersId = orders.getId();
-            ordersIdList.add(ordersId);
-        }
         //通过OrderId查询对应的OrderDetail
-        LambdaQueryWrapper<OrderDetail> queryWrapper3 = new LambdaQueryWrapper<>();
-        //封装对OrderDetail的查询条件
-        queryWrapper3.in(OrderDetail::getOrderId, ordersIdList);
-        //查询到OrderDetail集合,里面有我们想要的数据 number  name....
-        List<OrderDetail> orderDetailList = orderDetailService.list(queryWrapper3);
+        LambdaQueryWrapper<OrderDetail> queryWrapper2 = new LambdaQueryWrapper<>();
 
         //对OrderDto进行需要的属性赋值
         List<Orders> records = pageInfo.getRecords();
         List<OrderDto> orderDtoList = records.stream().map((item) ->{
             OrderDto orderDto = new OrderDto();
             //此时的orderDto对象里面orderDetails属性还是空 下面准备为它赋值
+            Long orderId = item.getId();//获取订单id
+            List<OrderDetail> orderDetailList = this.getOrderDetailListByOrderId(orderId);
             BeanUtils.copyProperties(item,orderDto);
             //对orderDto进行OrderDetails属性的赋值
             orderDto.setOrderDetails(orderDetailList);
@@ -107,6 +104,7 @@ public class OrderController {
         }).collect(Collectors.toList());
 
         //使用dto的分页有点难度.....需要重点掌握
+        BeanUtils.copyProperties(pageInfo,pageDto,"records");
         pageDto.setRecords(orderDtoList);
         return R.success(pageDto);
     }

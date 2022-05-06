@@ -110,6 +110,8 @@ public class ShoppingCartController {
         if (dishId != null){
             //通过dishId查出购物车对象
             queryWrapper.eq(ShoppingCart::getDishId,dishId);
+            //这里必须要加两个条件，否则会出现用户互相修改对方与自己购物车中相同套餐或者是菜品的数量
+            queryWrapper.eq(ShoppingCart::getUserId,BaseContext.getCurrentId());
             ShoppingCart cart1 = shoppingCartService.getOne(queryWrapper);
             cart1.setNumber(cart1.getNumber()-1);
             Integer LatestNumber = cart1.getNumber();
@@ -129,7 +131,7 @@ public class ShoppingCartController {
         Long setmealId = shoppingCart.getSetmealId();
         if (setmealId != null){
             //代表是套餐数量减少
-            queryWrapper.eq(ShoppingCart::getSetmealId,setmealId);
+            queryWrapper.eq(ShoppingCart::getSetmealId,setmealId).eq(ShoppingCart::getUserId,BaseContext.getCurrentId());
             ShoppingCart cart2 = shoppingCartService.getOne(queryWrapper);
             cart2.setNumber(cart2.getNumber()-1);
             Integer LatestNumber = cart2.getNumber();

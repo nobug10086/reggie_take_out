@@ -88,7 +88,6 @@ public class DishController {
 
         List<DishDto> list = records.stream().map((item) ->{
             //对实体类DishDto进行categoryName的设值
-
             DishDto dishDto = new DishDto();
             //这里的item相当于Dish  对dishDto进行除categoryName属性的拷贝
             BeanUtils.copyProperties(item,dishDto);
