@@ -97,16 +97,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
         orders.setAmount(new BigDecimal(amount.get()));//总金额
         orders.setUserId(userId);
         orders.setNumber(String.valueOf(orderId));
+        if (user.getName() != null){
+            orders.setUserName(user.getName());
+        }
 
-        //从购物车中获取商品数量  然后求和  这个功能前端写了 不用我们后端来写了
-//        int sum = 0;
-//        for (ShoppingCart shoppingCart : shoppingCarts) {
-//            Integer number = shoppingCart.getNumber();
-//            sum = sum + number;
-//        }
-//        orders.setSumNum(sum);//商品数量
-
-        orders.setUserName(user.getName());
         orders.setConsignee(addressBook.getConsignee());
         orders.setPhone(addressBook.getPhone());
         orders.setAddress((addressBook.getProvinceName() == null ? "" : addressBook.getProvinceName())
