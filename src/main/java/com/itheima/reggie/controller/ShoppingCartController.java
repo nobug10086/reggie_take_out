@@ -106,6 +106,7 @@ public class ShoppingCartController {
 
         Long dishId = shoppingCart.getDishId();
         LambdaQueryWrapper<ShoppingCart> queryWrapper = new LambdaQueryWrapper<>();
+
         //代表数量减少的是菜品数量
         if (dishId != null){
             //通过dishId查出购物车对象

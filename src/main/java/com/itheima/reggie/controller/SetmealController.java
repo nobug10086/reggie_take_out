@@ -9,12 +9,11 @@ package com.itheima.reggie.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.itheima.reggie.common.R;
+import com.itheima.reggie.dto.DishDto;
 import com.itheima.reggie.dto.SetmealDto;
-import com.itheima.reggie.entity.Category;
-import com.itheima.reggie.entity.Dish;
-import com.itheima.reggie.entity.Setmeal;
-import com.itheima.reggie.entity.SetmealDish;
+import com.itheima.reggie.entity.*;
 import com.itheima.reggie.service.CategoryService;
+import com.itheima.reggie.service.DishService;
 import com.itheima.reggie.service.SetmealDishService;
 import com.itheima.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +23,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,6 +40,9 @@ public class SetmealController {
 
     @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+    private DishService dishService;
 
 
     /**
@@ -171,13 +174,31 @@ public class SetmealController {
     }
 
 
-
     @PutMapping
     public R<String> edit(@RequestBody SetmealDto setmealDto){
 
         setmealService.updateById(setmealDto);
 
         return R.success("套餐修改成功");
+    }
+
+    @GetMapping("/dish/{id}")
+    public R<List<Dish>> dish(@PathVariable("id") Long SetmealId){
+
+        LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SetmealDish::getSetmealId,SetmealId);
+        List<SetmealDish> list = setmealDishService.list(queryWrapper);
+
+        LambdaQueryWrapper<Dish> queryWrapper2 = new LambdaQueryWrapper<>();
+        ArrayList<Long> dishIdList = new ArrayList<>();
+        for (SetmealDish setmealDish : list) {
+            Long dishId = setmealDish.getDishId();
+            dishIdList.add(dishId);
+        }
+        queryWrapper2.in(Dish::getId, dishIdList);
+        List<Dish> dishList = dishService.list(queryWrapper2);
+
+        return R.success(dishList);
     }
 
 
