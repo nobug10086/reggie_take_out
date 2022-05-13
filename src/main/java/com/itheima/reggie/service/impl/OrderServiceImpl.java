@@ -100,8 +100,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
         if (user.getName() != null){
             orders.setUserName(user.getName());
         }
-
-        orders.setConsignee(addressBook.getConsignee());
+        if (addressBook.getConsignee() != null){
+            orders.setConsignee(addressBook.getConsignee());
+        }
         orders.setPhone(addressBook.getPhone());
         orders.setAddress((addressBook.getProvinceName() == null ? "" : addressBook.getProvinceName())
                 + (addressBook.getCityName() == null ? "" : addressBook.getCityName())
