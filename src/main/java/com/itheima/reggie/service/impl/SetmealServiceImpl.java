@@ -112,7 +112,7 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
      * @return
      */
     @Override
-    public SetmealDto getDate(Long id) {
+    public SetmealDto getData(Long id) {
         Setmeal setmeal = this.getById(id);
         SetmealDto setmealDto = new SetmealDto();
         LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper();
