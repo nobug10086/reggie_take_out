@@ -82,7 +82,8 @@ public class OrderController {
         Page<OrderDto> pageDto = new Page<>(page,pageSize);
         //构造条件查询对象
         LambdaQueryWrapper<Orders> queryWrapper = new LambdaQueryWrapper<>();
-        //这里树直接把分页的全部结果查询出来，没有分页条件
+        queryWrapper.eq(Orders::getUserId,BaseContext.getCurrentId());
+        //这里是直接把当前用户分页的全部结果查询出来，要添加用户id作为查询条件，否则会出现用户可以查询到其他用户的订单情况
         //添加排序条件，根据更新时间降序排列
         queryWrapper.orderByDesc(Orders::getOrderTime);
         orderService.page(pageInfo,queryWrapper);
