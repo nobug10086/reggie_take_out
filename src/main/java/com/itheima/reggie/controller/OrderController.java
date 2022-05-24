@@ -57,6 +57,7 @@ public class OrderController {
 
 
     //抽离的一个方法，通过订单id查询订单明细，得到一个订单明细的集合
+    //这里抽离出来是为了避免在stream中遍历的时候直接使用构造条件来查询导致eq叠加，从而导致后面查询的数据都是null
     public List<OrderDetail> getOrderDetailListByOrderId(Long orderId){
         LambdaQueryWrapper<OrderDetail> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(OrderDetail::getOrderId, orderId);
@@ -164,6 +165,25 @@ public class OrderController {
         shoppingCartService.saveBatch(shoppingCartList);
 
         return R.success("操作成功");
+    }
+
+
+    @PutMapping
+    public R<String> orderStatusChange(@RequestBody Map<String,String> map){
+
+        String id = map.get("id");
+        Long orderId = Long.parseLong(id);
+        Integer status = Integer.parseInt(map.get("status"));
+
+        if(orderId == null || status==null){
+            return R.error("传入信息不合法");
+        }
+        Orders orders = orderService.getById(orderId);
+        orders.setStatus(status);
+        orderService.updateById(orders);
+
+        return R.success("订单状态修改成功");
+
     }
 
 
