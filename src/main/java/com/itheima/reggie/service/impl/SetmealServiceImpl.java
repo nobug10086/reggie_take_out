@@ -83,7 +83,7 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
         //删除关系表中的数据--setmeal_dish
         //delete from setmeal_dish where setmeal_id in (1,2,3)
         LambdaQueryWrapper<SetmealDish> lambdaQueryWrapper = new LambdaQueryWrapper();
-        lambdaQueryWrapper.in(SetmealDish::getId,ids);
+        lambdaQueryWrapper.in(SetmealDish::getSetmealId,ids);
         setmealDishService.remove(lambdaQueryWrapper);
     }
 
