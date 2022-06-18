@@ -4,18 +4,16 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.itheima.reggie.common.R;
 import com.itheima.reggie.dto.DishDto;
-import com.itheima.reggie.entity.Category;
-import com.itheima.reggie.entity.Dish;
-import com.itheima.reggie.entity.DishFlavor;
-import com.itheima.reggie.service.CategoryService;
-import com.itheima.reggie.service.DishFlavorService;
-import com.itheima.reggie.service.DishService;
+import com.itheima.reggie.entity.*;
+import com.itheima.reggie.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +30,12 @@ public class DishController {
 
     @Autowired
     private DishService dishService;
+
+    @Autowired
+    private SetmealDishService setmealDishService;
+
+    @Autowired
+    private SetmealService setmealService;
 
     @Autowired
     private DishFlavorService dishFlavorService;
@@ -147,11 +151,56 @@ public class DishController {
 
 
     /**
-     * 套餐批量删除和单个删除
+     * 菜品批量删除和单个删除
+     * 1.要先判断要删除的菜品是否在售卖，如果在售卖就不能删除
+     * 2.判断要删除的菜品在不在售卖的套餐中，如果再也不能删除
      * @return
      */
+//    @DeleteMapping
+//    public R<String> delete(@RequestParam("ids") List<Long> ids){
+//        dishService.deleteByIds(ids);
+//        LambdaQueryWrapper<DishFlavor> queryWrapper = new LambdaQueryWrapper<>();
+//        queryWrapper.in(DishFlavor::getDishId,ids);
+//        dishFlavorService.remove(queryWrapper);
+//        return R.success("菜品删除成功");
+//    }
+
+    //遇到一个小问题，添加菜品后，然后再添加套餐，但是套餐可选择添加的菜品选项是没有刚刚添加的菜品的？
+    //原因：redis存储的数据没有过期，不知道为什么redis没有重新刷新缓存
+    // （与下面的@GetMapping("/list")中的缓存设置有关，目前不知道咋配置。。。。。
+    // 解决方案，把redis中的数据手动的重新加载一遍，或者是等待过期时间，或者改造成使用spring catch
     @DeleteMapping
     public R<String> delete(@RequestParam("ids") List<Long> ids){
+        //根据菜品id在stemeal_dish表中查出哪些套餐包含该菜品
+        LambdaQueryWrapper<SetmealDish> setmealDishLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        setmealDishLambdaQueryWrapper.in(SetmealDish::getDishId,ids);
+        List<SetmealDish> SetmealDishList = setmealDishService.list(setmealDishLambdaQueryWrapper);
+        //菜品没有关联套餐，直接删除就行
+        if (SetmealDishList.size() == 0){
+            dishService.deleteByIds(ids);
+            LambdaQueryWrapper<DishFlavor> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.in(DishFlavor::getDishId,ids);
+            dishFlavorService.remove(queryWrapper);
+            return R.success("菜品删除成功");
+        }
+
+        //得到与删除菜品关联的套餐id
+        ArrayList<Long> Setmeal_idList = new ArrayList<>();
+        for (SetmealDish setmealDish : SetmealDishList) {
+            Long setmealId = setmealDish.getSetmealId();
+            Setmeal_idList.add(setmealId);
+        }
+        LambdaQueryWrapper<Setmeal> setmealLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        setmealLambdaQueryWrapper.in(Setmeal::getId,Setmeal_idList);
+        List<Setmeal> setmealList = setmealService.list(setmealLambdaQueryWrapper);
+        for (Setmeal setmeal : setmealList) {
+            Integer status = setmeal.getStatus();
+            if (status == 1){
+                return R.error("删除菜品目前关联在售套餐,删除失败！");
+            }
+        }
+
+        //这下面的代码并不一定会执行,因为如果前面的for循环中出现status == 1,那么下面的代码就不会再执行
         dishService.deleteByIds(ids);
         LambdaQueryWrapper<DishFlavor> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.in(DishFlavor::getDishId,ids);
