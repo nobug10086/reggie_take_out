@@ -152,10 +152,11 @@ public class DishController {
 
     /**
      * 菜品批量删除和单个删除
-     * 1.要先判断要删除的菜品是否在售卖，如果在售卖就不能删除
-     * 2.判断要删除的菜品在不在售卖的套餐中，如果再也不能删除
+     * 1.判断要删除的菜品在不在售卖的套餐中，如果在那不能删除
+     * 2.要先判断要删除的菜品是否在售卖，如果在售卖也不能删除
      * @return
      */
+    //这个注释是最初我写的删除菜品的逻辑
 //    @DeleteMapping
 //    public R<String> delete(@RequestParam("ids") List<Long> ids){
 //        dishService.deleteByIds(ids);
@@ -175,7 +176,7 @@ public class DishController {
         LambdaQueryWrapper<SetmealDish> setmealDishLambdaQueryWrapper = new LambdaQueryWrapper<>();
         setmealDishLambdaQueryWrapper.in(SetmealDish::getDishId,ids);
         List<SetmealDish> SetmealDishList = setmealDishService.list(setmealDishLambdaQueryWrapper);
-        //菜品没有关联套餐，直接删除就行
+        //如果菜品没有关联套餐，直接删除就行  其实下面这个逻辑可以抽离出来，这里我就不抽离了
         if (SetmealDishList.size() == 0){
             dishService.deleteByIds(ids);
             LambdaQueryWrapper<DishFlavor> queryWrapper = new LambdaQueryWrapper<>();
@@ -184,19 +185,22 @@ public class DishController {
             return R.success("菜品删除成功");
         }
 
+        //如果菜品有关联套餐，并且该套餐正在售卖，那么不能删除
         //得到与删除菜品关联的套餐id
         ArrayList<Long> Setmeal_idList = new ArrayList<>();
         for (SetmealDish setmealDish : SetmealDishList) {
             Long setmealId = setmealDish.getSetmealId();
             Setmeal_idList.add(setmealId);
         }
+        //查询出与删除菜品相关联的套餐
         LambdaQueryWrapper<Setmeal> setmealLambdaQueryWrapper = new LambdaQueryWrapper<>();
         setmealLambdaQueryWrapper.in(Setmeal::getId,Setmeal_idList);
         List<Setmeal> setmealList = setmealService.list(setmealLambdaQueryWrapper);
+        //对拿到的所有套餐进行遍历，然后拿到套餐的售卖状态，如果有套餐正在售卖那么删除失败
         for (Setmeal setmeal : setmealList) {
             Integer status = setmeal.getStatus();
             if (status == 1){
-                return R.error("删除菜品目前关联在售套餐,删除失败！");
+                return R.error("删除的菜品中有关联在售套餐,删除失败！");
             }
         }
 
