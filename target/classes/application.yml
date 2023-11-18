@@ -1,0 +1,45 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: reggie_take_out
+  datasource:
+    #数据库用户名
+    username: root
+    #数据库用户密码
+    password: 19690715
+    #serverTimezone=UTC 解决市区的报错 一般mysql是8.0以上的是必须配置这个
+    #userUnicode=true&characterEncoding=utf-8 指定字符编码、解码格式
+    url: jdbc:mysql://localhost:3306/wm?characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+    #设置驱动类
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    props:
+      sql:
+        show: true #开启SQL显示，默认false
+  redis:
+    host: 192.168.200.129
+    port: 6379
+    password: 111
+    database: 0
+  cache:
+    redis:
+      time-to-live: 1800000 #设置缓存有效期（单位：毫秒）
+  main:
+    allow-bean-definition-overriding: true
+
+mybatis-plus:
+  configuration:
+    #在映射实体或者属性时，将数据库中表名和字段名中的下划线去掉，按照驼峰命名法映射
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: ASSIGN_ID
+
+#静态资源的存放路径
+reggie:
+  #写成D:\img\或者D:/img/也能成功，写成双反斜杠点保险点，防止转义
+  path: D:\\Desktop\\2组实习\\images\\
+
+
+
