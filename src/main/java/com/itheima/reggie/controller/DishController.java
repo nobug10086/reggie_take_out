@@ -156,22 +156,8 @@ public class DishController {
      * 2.要先判断要删除的菜品是否在售卖，如果在售卖也不能删除
      * @return
      */
-    //这个注释是最初我写的删除菜品的逻辑
-//    @DeleteMapping
-//    public R<String> delete(@RequestParam("ids") List<Long> ids){
-//        dishService.deleteByIds(ids);
-//        LambdaQueryWrapper<DishFlavor> queryWrapper = new LambdaQueryWrapper<>();
-//        queryWrapper.in(DishFlavor::getDishId,ids);
-//        dishFlavorService.remove(queryWrapper);
-//        return R.success("菜品删除成功");
-//    }
-
-    //遇到一个小问题，添加菜品后，然后再添加套餐，但是套餐可选择添加的菜品选项是没有刚刚添加的菜品的？
-    //原因：redis存储的数据没有过期，不知道为什么redis没有重新刷新缓存
-    // （与下面的@GetMapping("/list")中的缓存设置有关，目前不知道咋配置。。。。。
-    // 解决方案，把redis中的数据手动的重新加载一遍，或者是等待过期时间，或者改造成使用spring catch
     @DeleteMapping
-    public R<String> delete(@RequestParam("ids") List<Long> ids){
+    public R<String> delete(@RequestParam("id") List<Long> ids){
         //根据菜品id在stemeal_dish表中查出哪些套餐包含该菜品
         LambdaQueryWrapper<SetmealDish> setmealDishLambdaQueryWrapper = new LambdaQueryWrapper<>();
         setmealDishLambdaQueryWrapper.in(SetmealDish::getDishId,ids);
@@ -301,9 +287,7 @@ public class DishController {
      */
     @PostMapping("/status/{status}")
     //这个参数这里一定记得加注解才能获取到参数，否则这里非常容易出问题
-    public R<String> status(@PathVariable("status") Integer status,@RequestParam List<Long> ids){
-        //log.info("status:{}",status);
-        //log.info("ids:{}",ids);
+    public R<String> status(@PathVariable("status") Integer status, @RequestParam("id") List<Long> ids){
         LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper();
         queryWrapper.in(ids !=null,Dish::getId,ids);
         List<Dish> list = dishService.list(queryWrapper);
@@ -316,9 +300,4 @@ public class DishController {
         }
         return R.success("售卖状态修改成功");
     }
-
-
-
-
-
 }

@@ -11,7 +11,6 @@ import com.itheima.reggie.mapper.OrderMapper;
 import com.itheima.reggie.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -146,5 +145,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
         }).collect(Collectors.toList());
 
         return shoppingCartList;
+    }
+
+    @Override
+    public void delete(Long id) {
+        baseMapper.deleteById(id);
     }
 }

@@ -61,48 +61,6 @@
                 data(){
                     return {
                         addressList:[
-                        //     {
-                        //     label:'公司',
-                        //     detail:'金燕龙写字楼 4层电梯口fsdfdsfsdfsdfsssssssssssss（电梯可…）',
-                        //     consignee:'周先生',//姓名
-                        //     phone:18544445566,//手机号
-                        //     isDefault:0,//是否是默认
-                        // },
-                        // {
-                        //     label:'家',
-                        //     detail:'金燕龙写字楼 4层电梯口（电梯可…）',
-                        //     consignee:'周先生',//姓名
-                        //     phone:18544445566,//手机号
-                        //     isDefault:0,//是否是默认
-                        // },
-                        // {
-                        //     label:'学校',
-                        //     detail:'金燕龙写字楼 4层电梯口（电梯可…）',
-                        //     consignee:'周先生',//姓名
-                        //     phone:18544445566,//手机号
-                        //     isDefault:0,//是否是默认
-                        // },
-                        // {
-                        //     label:'公司',
-                        //     detail:'金燕龙写字楼 4层电梯口（电梯可…）',
-                        //     consignee:'周先生',//姓名
-                        //     phone:18544445566,//手机号
-                        //     isDefault:0,//是否是默认
-                        // },
-                        // {
-                        //     label:'公司',
-                        //     detail:'金燕龙写字楼 4层电梯口（电梯可…）',
-                        //     consignee:'周先生',//姓名
-                        //     phone:18544445566,//手机号
-                        //     isDefault:0,//是否是默认
-                        // },
-                        // {
-                        //     label:'公司',
-                        //     detail:'金燕龙写字楼 4层电梯口（电梯可…）',
-                        //     consignee:'周先生',//姓名
-                        //     phone:18544445566,//手机号
-                        //     isDefault:1,//是否是默认
-                        // }
                     ],
                     }
                 },
@@ -123,6 +81,28 @@
                     toAddressCreatePage(){
                         window.requestAnimationFrame(()=>{
                             window.location.href= '/front/page/address-edit.html'
+                        })
+                    },
+                    toDeleteAddress(id) {
+                        if (id === null) {
+                            if (this.checkList.length === 0) {
+                                return this.$message.error('请选择删除对象')
+                            }
+                        }
+                        this.$confirm('确认删除该地址, 是否继续?', '确定删除', {
+                            'confirmButtonText': '确定',
+                            'cancelButtonText': '取消',
+                        }).then(() => {
+                            deleteDish(type === '批量' ? this.checkList.join(',') : id).then(res => {
+                                if (res.code === 1) {
+                                    this.$message.success('删除成功！')
+                                    this.handleQuery()
+                                } else {
+                                    this.$message.error(res.msg || '操作失败')
+                                }
+                            }).catch(err => {
+                                this.$message.error('请求出错了：' + err)
+                            })
                         })
                     },
                     async initData(){

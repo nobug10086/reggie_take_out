@@ -109,7 +109,13 @@
   margin-bottom: 17rem;
   margin-top: 20rem;
 }
+#order .divBody .item .buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem; /* 调整按钮与实付金额之间的距离 */
+}
 
+/* 剩余的样式保持不变 */
 #order .divBody .btn .btnAgain {
   width: 124rem;
   height: 36rem;

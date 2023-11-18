@@ -1,9 +1,9 @@
 //提交订单
-function  addOrderApi(data){
+function  addOrderApi(params){
     return $axios({
         'url': '/order/submit',
         'method': 'post',
-        data
+        data: params
       })
 }
 
@@ -22,6 +22,14 @@ function orderPagingApi(data) {
       'method': 'get',
       params:{...data}
   })
+}
+// 删除订单
+function deleteOrder(id) {
+    return $axios({
+        'url': `/order`, // 将订单ID添加到URL中
+        'method': 'delete',
+         params: { id }
+    })
 }
 
 //再来一单

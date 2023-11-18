@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.security.PublicKey;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -44,23 +45,20 @@ public class UserController {
     public R<String> sendMsg(@RequestBody User user, HttpSession session){
         //获取手机号
         String phone = user.getPhone();
-        if (StringUtils.isNotEmpty(phone)){
-            //随机生成的4为验证码
-            Integer integerCode = ValidateCodeUtils.generateValidateCode(4);
-            String code = integerCode.toString();
+
+        if(StringUtils.isNotEmpty(phone)){
+            //生成随机的4位验证码
+            String code = ValidateCodeUtils.generateValidateCode(4).toString();
             log.info("code={}",code);
-            //调用阿里云提供的短信服务api完成发送短信
-            //SMSUtils.sendMessage("瑞吉外卖","",phone,code);
-
-            //把验证码存起来  这里使用session来存放验证码，当然也可以存到redis
-            //session.setAttribute(phone,code);
-
-            //将验证码存放到redis,并且设置有效时间为5分钟
+            //发送验证码
+            SMSUtils.send(phone,code);
+            log.info("发送短信成功");
+            //将生成的验证码缓存到Redis中，并且设置有效期为五分钟
             redisTemplate.opsForValue().set(phone,code,5, TimeUnit.MINUTES);
-            return R.success("手机验证码发送成功");
-        }
 
-        return R.error("手机验证码发送失败");
+            return R.success("手机验证码短信发送成功");
+        }
+        return R.error("手机验证码短信发送失败");
     }
 
 

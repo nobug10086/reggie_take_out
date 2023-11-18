@@ -16,4 +16,6 @@ public interface OrderService extends IService<Orders> {
     public void submit(Orders orders);
 
     List<ShoppingCart> againAdd(List<OrderDetail> orderDetailList);
+
+    void delete(Long id);
 }
